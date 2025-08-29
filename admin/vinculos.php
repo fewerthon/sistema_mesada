@@ -11,7 +11,7 @@ $uid = isset($_GET['user_id']) ? (int)$_GET['user_id'] : ((count($filhos)>0) ? (
 if ($uid) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->prepare('DELETE FROM tarefas_usuario WHERE user_id=?')->execute([$uid]);
-        $desde = date('Y-m-d'); // <- data do vínculo (hoje)
+        $desde = date('Y-m-d'); // data do vínculo (hoje)
 
         foreach (range(0,6) as $d) {
             $list = $_POST['dia_'.$d] ?? [];
@@ -43,6 +43,7 @@ if ($uid) {
       </select>
     </div>
   </form>
+
   <?php if ($uid): ?>
   <form method="post">
     <?php echo csrf_input(); ?>
@@ -52,23 +53,45 @@ if ($uid) {
       foreach (range(0,6) as $d): ?>
         <div class="col-12 col-md-6 col-lg-4">
           <div class="border rounded p-2 h-100">
-            <h6><?php echo $dias[$d]; ?></h6>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="m-0"><?php echo $dias[$d]; ?></h6>
+              <div class="btn-group btn-group-sm" role="group" aria-label="Selecionar dia <?php echo $dias[$d]; ?>">
+                <button type="button" class="btn btn-outline-secondary" onclick="daySelect(<?php echo $d; ?>, true)">Marcar todos</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="daySelect(<?php echo $d; ?>, false)">Limpar</button>
+              </div>
+            </div>
+
             <?php foreach ($tarefas as $t):
               $checked = in_array($t['id'], $map[$d] ?? []);
             ?>
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="t<?php echo $d.'_'.$t['id']; ?>" name="dia_<?php echo $d; ?>[]" value="<?php echo $t['id']; ?>" <?php if($checked) echo 'checked'; ?>>
-                <label class="form-check-label" for="t<?php echo $d.'_'.$t['id']; ?>"><?php echo htmlspecialchars($t['titulo']); ?> <small class="text-muted">(peso <?php echo (int)$t['peso']; ?>)</small></label>
+                <input class="form-check-input" type="checkbox"
+                       id="t<?php echo $d.'_'.$t['id']; ?>"
+                       name="dia_<?php echo $d; ?>[]"
+                       value="<?php echo $t['id']; ?>"
+                       <?php if($checked) echo 'checked'; ?>>
+                <label class="form-check-label" for="t<?php echo $d.'_'.$t['id']; ?>">
+                  <?php echo htmlspecialchars($t['titulo']); ?>
+                  <small class="text-muted">(peso <?php echo (int)$t['peso']; ?>)</small>
+                </label>
               </div>
             <?php endforeach; ?>
           </div>
         </div>
       <?php endforeach; ?>
     </div>
+
     <div class="mt-3"><button class="btn btn-primary">Salvar vínculos</button></div>
   </form>
   <?php else: ?>
     <div class="alert alert-warning">Cadastre ao menos um filho.</div>
   <?php endif; ?>
 </div>
+
+<script>
+  // Marca/Desmarca todas as tarefas de um dia específico
+  function daySelect(dia, marcar){
+    document.querySelectorAll('input[name="dia_'+dia+'[]"]').forEach(cb => cb.checked = !!marcar);
+  }
+</script>
 </div><?php html_foot(); ?>
