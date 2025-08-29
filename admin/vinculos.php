@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/layout.php';
+require_once 'layout.php';
 csrf_check();
 $pdo = db();
 $filhos = $pdo->query("SELECT id, name FROM users WHERE role='filho' ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);

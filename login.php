@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/auth.php';
+require_once ROOT_PATH . '/auth.php';
 csrf_check();
-if (!empty($_SESSION['user_id'])) { header('Location: /index.php'); exit; }
+if (!empty($_SESSION['user_id'])) { header('Location: index.php'); exit; }
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = find_user_by_email($email);
     if ($user && password_verify($pass, $user['password_hash'])) {
         login_user($user);
-        header('Location: /index.php'); exit;
+        header('Location: index.php'); exit;
     } else {
         $error = 'Login inválido';
     }
@@ -38,9 +38,7 @@ html_head('Login - Mesada & Tarefas');
           </form>
         </div>
       </div>
-      <p class="text-center text-muted mt-3 small">Supervisor: admin@local / admin123</p>
-      <p class="text-center text-muted small">Filho: fulano@local / filho123</p>
-    </div>
+     </div>
   </div>
 </div>
 <?php html_foot(); ?>

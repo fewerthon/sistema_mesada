@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/layout.php';
+require_once 'layout.php';
 $pdo = db();
 $filhos = $pdo->query("SELECT id,name FROM users WHERE role='filho' ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 $user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : ((count($filhos)>0) ? (int)$filhos[0]['id'] : 0);
@@ -55,7 +55,7 @@ $totais = $user ? ganhos_no_periodo($user_id, $ini, $fim) : ['ganho'=>0,'perda'=
           echo '<td>'.money_br($map_val[$t['tarefa_id']] ?? 0).'</td>';
           echo '<td>'.($done?'<span class="badge bg-success">Concluída</span>':'<span class="badge bg-secondary">Pendente</span>').'</td>';
           echo '<td>';
-          echo '<form method="post" action="/toggle_status.php" class="d-inline">'.csrf_input().
+          echo '<form method="post" action="'.$baseUrl.'./toggle_status.php" class="d-inline">'.csrf_input().
                '<input type="hidden" name="target_user_id" value="'.$user_id.'">'.  // importante!
                '<input type="hidden" name="tarefa_id" value="'.$t['tarefa_id'].'">'. 
                '<input type="hidden" name="date" value="'.$d.'">'. 

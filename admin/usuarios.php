@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/layout.php';
+require_once 'layout.php';
 csrf_check();
 $pdo = db();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

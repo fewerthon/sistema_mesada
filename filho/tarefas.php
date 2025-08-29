@@ -1,6 +1,5 @@
 <?php
-require_once __DIR__ . '/layout.php';
-require_once __DIR__ . '/../util.php';
+require_once 'layout.php';
 $user = get_user_by_id((int)$_SESSION['user_id']);
 $view = $_GET['view'] ?? 'semanal';
 $ref = $_GET['date'] ?? today_date();
@@ -22,7 +21,7 @@ $totais = ganhos_no_periodo((int)$user['id'], $start, $end);
 <div class="bg-white rounded shadow-sm p-3">
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
     <div>
-      <a href="/filho/index.php" class="btn btn-sm btn-outline-secondary">Hoje</a>
+      <a href="<?=$baseUrl;?>/filho/index.php" class="btn btn-sm btn-outline-secondary">Hoje</a>
       <a href="?view=semanal&date=<?php echo htmlspecialchars($ref); ?>" class="btn btn-sm <?php echo $view==='semanal'?'btn-primary':'btn-outline-primary'; ?>">Semanal</a>
       <a href="?view=mensal&date=<?php echo htmlspecialchars($ref); ?>" class="btn btn-sm <?php echo $view==='mensal'?'btn-primary':'btn-outline-primary'; ?>">Mensal</a>
     </div>

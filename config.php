@@ -5,8 +5,20 @@ error_reporting(E_ALL);
 date_default_timezone_set('America/Sao_Paulo');
 session_start();
 
+// caminho para sistema
+$dir = str_replace('\\', '/', __DIR__);
+// Remove somente se terminar em /admin ou /filho
+define('ROOT_PATH', preg_replace('/\/(admin|filho)$/', '', $dir));
+
+
+
 // Caminho do banco
-const DB_PATH = __DIR__ . '/data/app.db';
+const DB_PATH = ROOT_PATH . '/data/app.db';
+
+// caminho para url
+$baseUrl = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+$baseUrl = rtrim($baseUrl, '/'); // remove barra final
+$baseUrl = preg_replace('/\/(admin|filho)$/', '', $baseUrl);
 
 // CSRF simples
 if (empty($_SESSION['csrf_token'])) {

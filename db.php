@@ -1,10 +1,10 @@
 <?php
-require_once __DIR__ . '/config.php';
+require_once ROOT_PATH . '/config.php';
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
-        if (!is_dir(__DIR__ . '/data')) {
-            mkdir(__DIR__ . '/data', 0775, true);
+        if (!is_dir(ROOT_PATH . '/data')) {
+            mkdir(ROOT_PATH . '/data', 0775, true);
         }
         $pdo = new PDO('sqlite:' . DB_PATH);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

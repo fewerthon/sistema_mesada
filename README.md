@@ -22,6 +22,3 @@ Valor da tarefa no dia = `(peso_da_tarefa / soma_pesos_do_dia) × (mesada_do_fil
 - `admin/` (painel do supervisor)
 - `filho/` (painel do filho)
 - `data/app.db` (SQLite)
-
-## OBSERVAÇÕES
-- Sistema atualmente só funciona no raiz

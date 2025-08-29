@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS tarefas_usuario (
   tarefa_id INTEGER NOT NULL,
   dia_semana INTEGER NOT NULL CHECK(dia_semana BETWEEN 0 AND 6),
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY(tarefa_id) REFERENCES tarefas(id) ON DELETE CASCADE
+  FOREIGN KEY(tarefa_id) REFERENCES tarefas(id) ON DELETE CASCADE,
+  mesada_cadastrada REAL,
 );
 CREATE TABLE IF NOT EXISTS tarefas_status (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

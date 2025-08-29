@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/db.php';
+require_once ROOT_PATH . '/db.php';
 function today_date(): string { return date('Y-m-d'); }
 function ymd_to_weekday(string $ymd): int { return (int)date('w', strtotime($ymd)); } // 0=Dom
 function days_in_month_for_date(string $ymd): int { return (int)date('t', strtotime($ymd)); }
@@ -11,7 +11,7 @@ function get_user_by_id(int $id): ?array {
     return $r ?: null;
 }
 function require_login(): void {
-    if (empty($_SESSION['user_id'])) { header('Location: /login.php'); exit; }
+    if (empty($_SESSION['user_id'])) { header('Location: login.php'); exit; }
 }
 function require_role(string $role): void {
     require_login();

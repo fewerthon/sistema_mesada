@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/util.php';
+require_once ROOT_PATH . '/util.php';
 csrf_check();
 require_login();
 // Se supervisor, pode alterar status de um filho alvo.

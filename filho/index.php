@@ -1,6 +1,5 @@
 <?php
-require_once __DIR__ . '/layout.php';
-require_once __DIR__ . '/../util.php';
+require_once 'layout.php';
 $user = get_user_by_id((int)$_SESSION['user_id']);
 $hoje = today_date();
 $dow = ymd_to_weekday($hoje);
@@ -10,7 +9,7 @@ $map_val = map_valores_por_tarefa($user, $hoje, $tarefas);
 <div class="bg-white rounded shadow-sm p-3">
   <div class="d-flex justify-content-between align-items-center mb-2">
     <h2 class="h5 mb-0">Tarefas de hoje (<?php echo htmlspecialchars($hoje); ?>)</h2>
-    <a class="btn btn-sm btn-outline-secondary" href="/filho/tarefas.php?view=semanal">Ver semana</a>
+    <a class="btn btn-sm btn-outline-secondary" href="<?=$baseUrl;?>/filho/tarefas.php?view=semanal">Ver semana</a>
   </div>
   <?php if (!$tarefas): ?>
     <div class="alert alert-info">Você não tem tarefas atribuídas hoje.</div>
@@ -25,7 +24,7 @@ $map_val = map_valores_por_tarefa($user, $hoje, $tarefas);
           <strong><?php echo htmlspecialchars($t['titulo']); ?></strong>
           <small class="text-muted ms-2">peso <?php echo (int)$t['peso']; ?></small>
         </div>
-        <span class="badge bg-light text-dark border">Valor: <?php echo money_br($map_val[$t['tarefa_id']] ?? 0); ?></span>
+        <!--<span class="badge bg-light text-dark border">Valor: <?php echo money_br($map_val[$t['tarefa_id']] ?? 0); ?></span>-->
       </li>
       <?php endforeach; ?>
     </ul>
@@ -43,7 +42,7 @@ $map_val = map_valores_por_tarefa($user, $hoje, $tarefas);
       formData.append('date', '<?php echo $hoje; ?>');
       formData.append('set', set);
       formData.append('target_user_id', '<?php echo (int)$user['id']; ?>');
-      const r = await fetch('/toggle_status.php', { method: 'POST', body: formData });
+      const r = await fetch('<?=$baseUrl;?>/toggle_status.php', { method: 'POST', body: formData });
       if (!r.ok) {
         alert('Falha ao atualizar.');
         e.target.checked = !e.target.checked;
