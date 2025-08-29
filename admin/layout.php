@@ -18,6 +18,7 @@ $me = get_user_by_id((int)($_SESSION['user_id'] ?? 0));
         <li class="nav-item"><a class="nav-link" href="<?=$baseUrl;?>/admin/tarefas.php">Tarefas</a></li>
         <li class="nav-item"><a class="nav-link" href="<?=$baseUrl;?>/admin/vinculos.php">Vínculos</a></li>
         <li class="nav-item"><a class="nav-link" href="<?=$baseUrl;?>/admin/relatorio.php">Relatórios</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?=$baseUrl;?>/admin/supervisores.php">Supervisores</a></li>
         <li class="nav-item"><a class="nav-link" href="<?=$baseUrl;?>/admin/configuracoes.php">Configurações</a></li>
       </ul>
       <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#modalPerfil">
