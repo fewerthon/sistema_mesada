@@ -11,7 +11,7 @@ $cfgVal = $pdo->query("SELECT value FROM config WHERE key='exibir_valores_filhos
 $showValues = ($cfgVal === false) ? true : ((int)$cfgVal === 1);
 
 $tarefas = tarefas_do_dia_para_usuario((int)$user['id'], $dow);
-// calcula valores só se for exibir
+// calcula valores só se for exibir por tarefa
 $map_val = $showValues ? map_valores_por_tarefa($user, $hoje, $tarefas) : [];
 ?>
 <div class="bg-white rounded shadow-sm p-3">
@@ -23,7 +23,7 @@ $map_val = $showValues ? map_valores_por_tarefa($user, $hoje, $tarefas) : [];
     <div class="alert alert-info">Você não tem tarefas atribuídas hoje.</div>
   <?php else: ?>
     <ul class="list-group">
-      <?php foreach ($tarefas as $t): 
+      <?php foreach ($tarefas as $t):
         $done = status_tarefa_no_dia((int)$user['id'], (int)$t['tarefa_id'], $hoje);
       ?>
       <li class="list-group-item d-flex justify-content-between align-items-center">
