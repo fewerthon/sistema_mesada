@@ -7,8 +7,6 @@
 ## Como iniciar
 1. Crie a pasta `data/` com permissão de escrita (já incluída neste pacote).
 2. Acesse `/init_db.php` uma vez para criar o banco e usuários demo.
-2. Acesse `/update_db1.php` para rodar o primeiro update da base.
-2. Acesse `/update_db2.php` para rodar o segundo update da base.
 3. Acesse `/login.php`:
    - Supervisor: `admin@local` / `admin123`
    - Filho demo: `fulano@local` / `filho123`
