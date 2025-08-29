@@ -1,10 +1,18 @@
 <?php
 require_once 'layout.php';
+
 $user = get_user_by_id((int)$_SESSION['user_id']);
 $hoje = today_date();
 $dow = ymd_to_weekday($hoje);
+
+// Lê a flag de configuração (default = mostrar)
+$pdo = db();
+$cfgVal = $pdo->query("SELECT value FROM config WHERE key='exibir_valores_filhos'")->fetchColumn();
+$showValues = ($cfgVal === false) ? true : ((int)$cfgVal === 1);
+
 $tarefas = tarefas_do_dia_para_usuario((int)$user['id'], $dow);
-$map_val = map_valores_por_tarefa($user, $hoje, $tarefas);
+// calcula valores só se for exibir
+$map_val = $showValues ? map_valores_por_tarefa($user, $hoje, $tarefas) : [];
 ?>
 <div class="bg-white rounded shadow-sm p-3">
   <div class="d-flex justify-content-between align-items-center mb-2">
@@ -24,7 +32,9 @@ $map_val = map_valores_por_tarefa($user, $hoje, $tarefas);
           <strong><?php echo htmlspecialchars($t['titulo']); ?></strong>
           <small class="text-muted ms-2">peso <?php echo (int)$t['peso']; ?></small>
         </div>
-        <span class="badge bg-light text-dark border">Valor: <?php echo money_br($map_val[$t['tarefa_id']] ?? 0); ?></span>
+        <?php if ($showValues): ?>
+          <span class="badge bg-light text-dark border">Valor: <?php echo money_br($map_val[$t['tarefa_id']] ?? 0); ?></span>
+        <?php endif; ?>
       </li>
       <?php endforeach; ?>
     </ul>

@@ -22,7 +22,10 @@ if ($view === 'mensal') {
 
 $pdo = db();
 
-// Pré-cálculo para cards + render (respeita DESDE e usa valor congelado se concluída)
+// flag de exibição de valores
+$showValues = (int)($pdo->query("SELECT value FROM config WHERE key='exibir_valores_filhos'")->fetchColumn()) === 1;
+
+// Pré-cálculo (respeita DESDE e usa congelado quando concluída)
 $totais = ['ganho'=>0.0, 'perda'=>0.0, 'total_previsto'=>0.0];
 $dias = [];
 
@@ -30,7 +33,6 @@ for ($ts = strtotime($start); $ts <= strtotime($end); $ts += 86400) {
   $d = date('Y-m-d', $ts);
   $dow = (int)date('w', $ts);
 
-  // tarefas válidas no dia (respeita DESDE)
   $st = $pdo->prepare("
     SELECT tu.tarefa_id, t.titulo, t.peso
       FROM tarefas_usuario tu
@@ -45,31 +47,25 @@ for ($ts = strtotime($start); $ts <= strtotime($end); $ts += 86400) {
   $tarefas = $st->fetchAll(PDO::FETCH_ASSOC);
   if (!$tarefas) continue;
 
-  // status + valor congelado das tarefas no dia
-  $stS = $pdo->prepare("
-    SELECT tarefa_id, concluida, COALESCE(valor_tarefa,0) AS valor_tarefa, COALESCE(mesada_ref,0) AS mesada_ref
-      FROM tarefas_status
-     WHERE user_id = ? AND date(data) = date(?)
-  ");
+  $stS = $pdo->prepare("SELECT tarefa_id, concluida, COALESCE(valor_tarefa,0) AS valor_tarefa FROM tarefas_status WHERE user_id=? AND date(data)=date(?)");
   $stS->execute([(int)$user['id'], $d]);
   $statusMap = [];
-  foreach ($stS->fetchAll(PDO::FETCH_ASSOC) as $row) {
-    $statusMap[(int)$row['tarefa_id']] = $row;
-  }
+  foreach ($stS->fetchAll(PDO::FETCH_ASSOC) as $row) { $statusMap[(int)$row['tarefa_id']] = $row; }
 
-  // valores com a MESADA ATUAL para pendentes
-  $map_val = map_valores_por_tarefa($user, $d, $tarefas);
+  // Se não vamos mostrar valores, não precisamos calcular; mas manter para consistência não pesa.
+  $map_val = $showValues ? map_valores_por_tarefa($user, $d, $tarefas) : [];
 
   $linhas = [];
   foreach ($tarefas as $t) {
     $tid = (int)$t['tarefa_id'];
     $done = (int)($statusMap[$tid]['concluida'] ?? 0) === 1;
     $valor_congelado = (float)($statusMap[$tid]['valor_tarefa'] ?? 0.0);
+    $valor_calc = (float)($map_val[$tid] ?? 0.0);
+    $valor = $done && $valor_congelado > 0 ? $valor_congelado : $valor_calc;
 
-    // Se concluída e tem valor congelado > 0, usa ele; senão usa o calculado atual
-    $valor = $done && $valor_congelado > 0 ? $valor_congelado : (float)($map_val[$tid] ?? 0.0);
-
-    if ($done) $totais['ganho'] += $valor; else $totais['perda'] += $valor;
+    if ($showValues) {
+      if ($done) $totais['ganho'] += $valor; else $totais['perda'] += $valor;
+    }
 
     $linhas[] = [
       'data' => $d,
@@ -80,11 +76,9 @@ for ($ts = strtotime($start); $ts <= strtotime($end); $ts += 86400) {
     ];
   }
 
+  if ($showValues) $totais['total_previsto'] = $totais['ganho'] + $totais['perda'];
   if ($linhas) $dias[] = ['data'=>$d, 'linhas'=>$linhas];
 }
-
-// previsto = ganho (congelado) + pendente (mesada atual)
-$totais['total_previsto'] = $totais['ganho'] + $totais['perda'];
 ?>
 <div class="bg-white rounded shadow-sm p-3">
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
@@ -100,15 +94,25 @@ $totais['total_previsto'] = $totais['ganho'] + $totais['perda'];
     </form>
   </div>
 
+  <?php if ($showValues): ?>
   <div class="row g-3 mb-3">
     <div class="col-12 col-md-4"><div class="p-3 border rounded h-100"><div class="text-muted">Previsto</div><div class="fs-5"><?php echo money_br($totais['total_previsto']); ?></div></div></div>
     <div class="col-12 col-md-4"><div class="p-3 border rounded h-100"><div class="text-muted">Ganho</div><div class="fs-5 text-success"><?php echo money_br($totais['ganho']); ?></div></div></div>
     <div class="col-12 col-md-4"><div class="p-3 border rounded h-100"><div class="text-muted">Descontos</div><div class="fs-5 text-danger"><?php echo money_br($totais['perda']); ?></div></div></div>
   </div>
+  <?php endif; ?>
 
   <div class="table-responsive">
     <table class="table table-sm align-middle">
-      <thead><tr><th>Data</th><th>Tarefa</th><th>Peso</th><th>Valor</th><th>Status</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Tarefa</th>
+          <th>Peso</th>
+          <?php if ($showValues): ?><th>Valor</th><?php endif; ?>
+          <th>Status</th>
+        </tr>
+      </thead>
       <tbody>
       <?php foreach ($dias as $dia): ?>
         <?php foreach ($dia['linhas'] as $ln): ?>
@@ -116,7 +120,7 @@ $totais['total_previsto'] = $totais['ganho'] + $totais['perda'];
             <td><?php echo htmlspecialchars($dia['data']); ?></td>
             <td><?php echo htmlspecialchars($ln['titulo']); ?></td>
             <td><?php echo (int)$ln['peso']; ?></td>
-            <td><?php echo money_br($ln['valor']); ?></td>
+            <?php if ($showValues): ?><td><?php echo money_br($ln['valor']); ?></td><?php endif; ?>
             <td><?php echo $ln['done'] ? '<span class="badge bg-success">Concluída</span>' : '<span class="badge bg-secondary">Pendente</span>'; ?></td>
           </tr>
         <?php endforeach; ?>

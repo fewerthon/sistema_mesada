@@ -15,8 +15,12 @@ function period_month_bounds(string $date): array {
 }
 list($ini, $fim) = period_month_bounds($date);
 
-// Totais respeitando DESDE e usando congelado quando concluída
+// lê configurações
+$bonus_percent = (int)($pdo->query("SELECT value FROM config WHERE key='bonus_percent'")->fetchColumn());
+
 $totais = ['ganho'=>0.0,'perda'=>0.0,'total_previsto'=>0.0];
+$occ_total = 0; $occ_done = 0;
+
 if ($user) {
   for ($ts = strtotime($ini); $ts <= strtotime($fim); $ts += 86400) {
     $d = date('Y-m-d', $ts);
@@ -37,9 +41,9 @@ if ($user) {
     $tarefas = $st->fetchAll(PDO::FETCH_ASSOC);
     if (!$tarefas) continue;
 
-    // status/valores congelados no dia
+    // status/valores congelados
     $stS = $pdo->prepare("
-      SELECT tarefa_id, concluida, COALESCE(valor_tarefa,0) AS valor_tarefa, COALESCE(mesada_ref,0) AS mesada_ref
+      SELECT tarefa_id, concluida, COALESCE(valor_tarefa,0) AS valor_tarefa
         FROM tarefas_status
        WHERE user_id = ? AND date(data) = date(?)
     ");
@@ -49,7 +53,6 @@ if ($user) {
       $statusMap[(int)$row['tarefa_id']] = $row;
     }
 
-    // valores atuais para pendentes
     $map_val = map_valores_por_tarefa($user, $d, $tarefas);
 
     foreach ($tarefas as $t) {
@@ -60,9 +63,20 @@ if ($user) {
       $valor = $done && $valor_congelado > 0 ? $valor_congelado : $valor_calc;
 
       if ($done) $totais['ganho'] += $valor; else $totais['perda'] += $valor;
+
+      // contagem de ocorrências do mês (para bônus)
+      $occ_total++;
+      if ($done) $occ_done++;
     }
   }
   $totais['total_previsto'] = $totais['ganho'] + $totais['perda'];
+}
+
+// bônus apenas para visão mensal (esta página já é mensal)
+$bonus_value = 0.0;
+$bonus_ok = ($occ_total > 0 && $occ_done === $occ_total);
+if ($bonus_ok && $bonus_percent > 0) {
+  $bonus_value = round($totais['ganho'] * ($bonus_percent / 100), 2);
 }
 ?>
 <div class="bg-white rounded shadow-sm p-3">
@@ -83,9 +97,18 @@ if ($user) {
 
   <?php if ($user): ?>
   <div class="row g-3 mb-3">
-    <div class="col-12 col-md-4"><div class="p-3 border rounded h-100"><div class="text-muted">Total previsto</div><div class="fs-4"><?php echo money_br($totais['total_previsto']); ?></div></div></div>
-    <div class="col-12 col-md-4"><div class="p-3 border rounded h-100"><div class="text-muted">Ganho até agora</div><div class="fs-4 text-success"><?php echo money_br($totais['ganho']); ?></div></div></div>
-    <div class="col-12 col-md-4"><div class="p-3 border rounded h-100"><div class="text-muted">Descontos</div><div class="fs-4 text-danger"><?php echo money_br($totais['perda']); ?></div></div></div>
+    <div class="col-12 col-md-3"><div class="p-3 border rounded h-100"><div class="text-muted">Total previsto</div><div class="fs-4"><?php echo money_br($totais['total_previsto']); ?></div></div></div>
+    <div class="col-12 col-md-3"><div class="p-3 border rounded h-100"><div class="text-muted">Ganho até agora</div><div class="fs-4 text-success"><?php echo money_br($totais['ganho']); ?></div></div></div>
+    <div class="col-12 col-md-3"><div class="p-3 border rounded h-100"><div class="text-muted">Descontos</div><div class="fs-4 text-danger"><?php echo money_br($totais['perda']); ?></div></div></div>
+    <div class="col-12 col-md-3">
+      <div class="p-3 border rounded h-100">
+        <div class="text-muted">Bônus do mês (<?php echo (int)$bonus_percent; ?>%)</div>
+        <div class="fs-4 <?php echo $bonus_value>0 ? 'text-success' : 'text-primary'; ?>">
+          <?php echo money_br($bonus_value); ?>
+        </div>
+        <div class="small text-muted">Concluídas <?php echo $occ_done; ?> de <?php echo $occ_total; ?> tarefas no mês.</div>
+      </div>
+    </div>
   </div>
 
   <div class="table-responsive">
@@ -111,7 +134,6 @@ if ($user) {
         $tarefas = $st->fetchAll(PDO::FETCH_ASSOC);
         if (!$tarefas) continue;
 
-        // status + congelado para exibição correta do valor
         $stS = $pdo->prepare("
           SELECT tarefa_id, concluida, COALESCE(valor_tarefa,0) AS valor_tarefa
             FROM tarefas_status
@@ -119,9 +141,7 @@ if ($user) {
         ");
         $stS->execute([$user_id, $d]);
         $statusMap = [];
-        foreach ($stS->fetchAll(PDO::FETCH_ASSOC) as $row) {
-          $statusMap[(int)$row['tarefa_id']] = $row;
-        }
+        foreach ($stS->fetchAll(PDO::FETCH_ASSOC) as $row) { $statusMap[(int)$row['tarefa_id']] = $row; }
 
         $map_val = map_valores_por_tarefa($user, $d, $tarefas);
 
@@ -153,19 +173,20 @@ if ($user) {
       </tbody>
     </table>
   </div>
+
+  <script>
+  function relSubmit(form, ev){
+    ev.preventDefault();
+    fetch(form.action, { method:'POST', body:new FormData(form) })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(() => location.reload())
+      .catch(() => location.reload());
+    return false;
+  }
+  </script>
+
   <?php else: ?>
     <div class="alert alert-warning">Selecione um filho.</div>
   <?php endif; ?>
 </div>
-</div>
-<script>
-function relSubmit(form, ev){
-  ev.preventDefault();
-  fetch(form.action, { method: 'POST', body: new FormData(form) })
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(() => location.reload())
-    .catch(() => location.reload());
-  return false;
-}
-</script>
-<?php html_foot(); ?>
+</div><?php html_foot(); ?>

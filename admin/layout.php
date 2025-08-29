@@ -16,6 +16,7 @@ require_role('supervisor');
         <li class="nav-item"><a class="nav-link" href="<?=$baseUrl;?>/admin/tarefas.php">Tarefas</a></li>
         <li class="nav-item"><a class="nav-link" href="<?=$baseUrl;?>/admin/vinculos.php">Vínculos</a></li>
         <li class="nav-item"><a class="nav-link" href="<?=$baseUrl;?>/admin/relatorio.php">Relatórios</a></li>
+        <li class="nav-item"><a class="nav-link" href="<?=$baseUrl;?>/admin/configuracoes.php">Configurações</a></li>
       </ul>
       <span class='navbar-text me-3'><?php echo htmlspecialchars($_SESSION['name']); ?></span>
       <a class="btn btn-outline-light" href="<?=$baseUrl;?>/logout.php">Sair</a>

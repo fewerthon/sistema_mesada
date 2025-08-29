@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/db.php';
+require_once 'db.php';
 $pdo = db();
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
