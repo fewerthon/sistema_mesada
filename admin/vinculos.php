@@ -2,20 +2,28 @@
 require_once 'layout.php';
 csrf_check();
 $pdo = db();
+
 $filhos = $pdo->query("SELECT id, name FROM users WHERE role='filho' ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 $tarefas = $pdo->query("SELECT id, titulo, peso FROM tarefas WHERE ativo=1 ORDER BY titulo")->fetchAll(PDO::FETCH_ASSOC);
+
 $uid = isset($_GET['user_id']) ? (int)$_GET['user_id'] : ((count($filhos)>0) ? (int)$filhos[0]['id'] : 0);
+
 if ($uid) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->prepare('DELETE FROM tarefas_usuario WHERE user_id=?')->execute([$uid]);
+        $desde = date('Y-m-d'); // <- data do vínculo (hoje)
+
         foreach (range(0,6) as $d) {
             $list = $_POST['dia_'.$d] ?? [];
             foreach ($list as $tid) {
-                $pdo->prepare('INSERT INTO tarefas_usuario(user_id,tarefa_id,dia_semana) VALUES (?,?,?)')->execute([$uid,(int)$tid,$d]);
+                // grava também a coluna DESDE
+                $pdo->prepare('INSERT INTO tarefas_usuario(user_id,tarefa_id,dia_semana,desde) VALUES (?,?,?,?)')
+                    ->execute([$uid, (int)$tid, $d, $desde]);
             }
         }
         echo '<div class="alert alert-success">Vínculos atualizados.</div>';
     }
+
     $vinc = $pdo->prepare('SELECT tarefa_id, dia_semana FROM tarefas_usuario WHERE user_id=?');
     $vinc->execute([$uid]);
     $map = [];

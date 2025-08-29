@@ -24,7 +24,7 @@ $map_val = map_valores_por_tarefa($user, $hoje, $tarefas);
           <strong><?php echo htmlspecialchars($t['titulo']); ?></strong>
           <small class="text-muted ms-2">peso <?php echo (int)$t['peso']; ?></small>
         </div>
-        <!--<span class="badge bg-light text-dark border">Valor: <?php echo money_br($map_val[$t['tarefa_id']] ?? 0); ?></span>-->
+        <span class="badge bg-light text-dark border">Valor: <?php echo money_br($map_val[$t['tarefa_id']] ?? 0); ?></span>
       </li>
       <?php endforeach; ?>
     </ul>

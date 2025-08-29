@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/db.php';
+require_once 'db.php';
 $pdo = db();
 $pdo->exec(<<<SQL
 CREATE TABLE IF NOT EXISTS users (
@@ -23,8 +23,7 @@ CREATE TABLE IF NOT EXISTS tarefas_usuario (
   tarefa_id INTEGER NOT NULL,
   dia_semana INTEGER NOT NULL CHECK(dia_semana BETWEEN 0 AND 6),
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY(tarefa_id) REFERENCES tarefas(id) ON DELETE CASCADE,
-  mesada_cadastrada REAL,
+  FOREIGN KEY(tarefa_id) REFERENCES tarefas(id) ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS tarefas_status (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

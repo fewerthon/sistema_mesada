@@ -1,5 +1,5 @@
 <?php
-require_once ROOT_PATH . '/config.php';
+require_once 'config.php';
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
