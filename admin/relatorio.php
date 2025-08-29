@@ -15,12 +15,14 @@ function period_month_bounds(string $date): array {
 }
 list($ini, $fim) = period_month_bounds($date);
 
-$totais = ['ganho'=>0,'perda'=>0,'total_previsto'=>0];
+// Totais respeitando DESDE e usando congelado quando concluída
+$totais = ['ganho'=>0.0,'perda'=>0.0,'total_previsto'=>0.0];
 if ($user) {
   for ($ts = strtotime($ini); $ts <= strtotime($fim); $ts += 86400) {
     $d = date('Y-m-d', $ts);
     $dow = (int)date('w', $ts);
 
+    // tarefas válidas no dia
     $st = $pdo->prepare("
       SELECT tu.tarefa_id, t.titulo, t.peso
         FROM tarefas_usuario tu
@@ -35,15 +37,32 @@ if ($user) {
     $tarefas = $st->fetchAll(PDO::FETCH_ASSOC);
     if (!$tarefas) continue;
 
+    // status/valores congelados no dia
+    $stS = $pdo->prepare("
+      SELECT tarefa_id, concluida, COALESCE(valor_tarefa,0) AS valor_tarefa, COALESCE(mesada_ref,0) AS mesada_ref
+        FROM tarefas_status
+       WHERE user_id = ? AND date(data) = date(?)
+    ");
+    $stS->execute([$user_id, $d]);
+    $statusMap = [];
+    foreach ($stS->fetchAll(PDO::FETCH_ASSOC) as $row) {
+      $statusMap[(int)$row['tarefa_id']] = $row;
+    }
+
+    // valores atuais para pendentes
     $map_val = map_valores_por_tarefa($user, $d, $tarefas);
-    $totais['total_previsto'] += array_sum($map_val);
 
     foreach ($tarefas as $t) {
-      $done  = status_tarefa_no_dia($user_id, (int)$t['tarefa_id'], $d);
-      $valor = (float)($map_val[$t['tarefa_id']] ?? 0.0);
+      $tid = (int)$t['tarefa_id'];
+      $done = (int)($statusMap[$tid]['concluida'] ?? 0) === 1;
+      $valor_congelado = (float)($statusMap[$tid]['valor_tarefa'] ?? 0.0);
+      $valor_calc = (float)($map_val[$tid] ?? 0.0);
+      $valor = $done && $valor_congelado > 0 ? $valor_congelado : $valor_calc;
+
       if ($done) $totais['ganho'] += $valor; else $totais['perda'] += $valor;
     }
   }
+  $totais['total_previsto'] = $totais['ganho'] + $totais['perda'];
 }
 ?>
 <div class="bg-white rounded shadow-sm p-3">
@@ -78,7 +97,6 @@ if ($user) {
         $d = date('Y-m-d', $ts);
         $dow = (int)date('w', $ts);
 
-        // BUSCA tarefas do dia RESPEITANDO o DESDE do vínculo
         $st = $pdo->prepare("
           SELECT tu.tarefa_id, t.titulo, t.peso
             FROM tarefas_usuario tu
@@ -91,21 +109,37 @@ if ($user) {
         ");
         $st->execute([$user_id, $dow, $d]);
         $tarefas = $st->fetchAll(PDO::FETCH_ASSOC);
-
         if (!$tarefas) continue;
+
+        // status + congelado para exibição correta do valor
+        $stS = $pdo->prepare("
+          SELECT tarefa_id, concluida, COALESCE(valor_tarefa,0) AS valor_tarefa
+            FROM tarefas_status
+           WHERE user_id = ? AND date(data) = date(?)
+        ");
+        $stS->execute([$user_id, $d]);
+        $statusMap = [];
+        foreach ($stS->fetchAll(PDO::FETCH_ASSOC) as $row) {
+          $statusMap[(int)$row['tarefa_id']] = $row;
+        }
 
         $map_val = map_valores_por_tarefa($user, $d, $tarefas);
 
         foreach ($tarefas as $t) {
-          $done = status_tarefa_no_dia($user_id, (int)$t['tarefa_id'], $d);
+          $tid = (int)$t['tarefa_id'];
+          $done = (int)($statusMap[$tid]['concluida'] ?? 0) === 1;
+          $valor_congelado = (float)($statusMap[$tid]['valor_tarefa'] ?? 0.0);
+          $valor_calc = (float)($map_val[$tid] ?? 0.0);
+          $valor = $done && $valor_congelado > 0 ? $valor_congelado : $valor_calc;
+
           echo '<tr>';
           echo '<td>'.htmlspecialchars($d).'</td>';
           echo '<td>'.htmlspecialchars($t['titulo']).'</td>';
           echo '<td>'.(int)$t['peso'].'</td>';
-          echo '<td>'.money_br($map_val[$t['tarefa_id']] ?? 0).'</td>';
+          echo '<td>'.money_br($valor).'</td>';
           echo '<td>'.($done?'<span class="badge bg-success">Concluída</span>':'<span class="badge bg-secondary">Pendente</span>').'</td>';
           echo '<td>';
-          echo '<form method="post" action="'.$baseUrl.'./toggle_status.php" class="d-inline">'.csrf_input().
+          echo '<form method="post" action="'.$baseUrl.'./toggle_status.php" class="d-inline" onsubmit="return relSubmit(this,event)">'.csrf_input().
                '<input type="hidden" name="target_user_id" value="'.$user_id.'">'.
                '<input type="hidden" name="tarefa_id" value="'.$t['tarefa_id'].'">'.
                '<input type="hidden" name="date" value="'.$d.'">'.
@@ -123,4 +157,15 @@ if ($user) {
     <div class="alert alert-warning">Selecione um filho.</div>
   <?php endif; ?>
 </div>
-</div><?php html_foot(); ?>
+</div>
+<script>
+function relSubmit(form, ev){
+  ev.preventDefault();
+  fetch(form.action, { method: 'POST', body: new FormData(form) })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(() => location.reload())
+    .catch(() => location.reload());
+  return false;
+}
+</script>
+<?php html_foot(); ?>
