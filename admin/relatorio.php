@@ -204,7 +204,7 @@ $qbase = [
           <td>
             <?php
               $done = $ln['done'];
-              echo '<form method="post" action="'.$baseUrl.'./toggle_status.php" class="d-inline" onsubmit="return relSubmit(this,event)">'.csrf_input().
+              echo '<form method="post" action="'.$baseUrl.'/toggle_status.php" class="d-inline" onsubmit="return relSubmit(this,event)">'.csrf_input().
                    '<input type="hidden" name="target_user_id" value="'.$user_id.'">'.
                    '<input type="hidden" name="tarefa_id" value="'.$ln['tarefa_id'].'">'.
                    '<input type="hidden" name="date" value="'.$ln['data'].'">'.
