@@ -11,7 +11,7 @@ function get_user_by_id(int $id): ?array {
     return $r ?: null;
 }
 function require_login(): void {
-    if (empty($_SESSION['user_id'])) { header('Location: login.php'); exit; }
+    if (empty($_SESSION['user_id'])) { header('Location: '.ROOT_PATH.'/login.php'); exit; }
 }
 function require_role(string $role): void {
     require_login();
