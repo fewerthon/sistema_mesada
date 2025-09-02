@@ -1,5 +1,10 @@
 <?php
 require_once ROOT_PATH . '/db.php';
+// caminho para url
+$baseUrl = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+$baseUrl = rtrim($baseUrl, '/'); // remove barra final
+$baseUrl = preg_replace('/\/(admin|filho)$/', '', $baseUrl);
+
 function today_date(): string { return date('Y-m-d'); }
 function ymd_to_weekday(string $ymd): int { return (int)date('w', strtotime($ymd)); } // 0=Dom
 function days_in_month_for_date(string $ymd): int { return (int)date('t', strtotime($ymd)); }
@@ -11,7 +16,8 @@ function get_user_by_id(int $id): ?array {
     return $r ?: null;
 }
 function require_login(): void {
-    if (empty($_SESSION['user_id'])) { header('Location: '.ROOT_PATH.'/login.php'); exit; }
+    global $baseUrl;
+    if (empty($_SESSION['user_id'])) { header('Location: '.$baseUrl.'/login.php'); exit; }
 }
 function require_role(string $role): void {
     require_login();
