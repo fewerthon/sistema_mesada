@@ -59,6 +59,5 @@ if ($set) {
        WHERE user_id = ? AND tarefa_id = ? AND date(data) = date(?)
     ")->execute([$valor, $mesada_ref, $target_user_id, $tarefa_id, $date]);
 }
-
 header('Content-Type: application/json');
 echo json_encode(['ok'=>true]);

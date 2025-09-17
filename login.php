@@ -34,6 +34,10 @@ html_head('Login - Mesada & Tarefas');
               <label class="form-label">Senha</label>
               <input class="form-control" type="password" name="password" required>
             </div>
+            <div>
+                <input type="checkbox" name="lembrar" id="lembrar" value="1">
+                <label for="lembrar">Lembrar de mim por 30 dias</label>
+            </div>
             <button class="btn btn-primary w-100" type="submit">Entrar</button>
           </form>
         </div>

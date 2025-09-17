@@ -38,12 +38,28 @@ function csrf_check(): void {
     }
 }
 function html_head(string $title = 'Mesada & Tarefas'): void {
-    echo "<!doctype html><html lang='pt-BR'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>";
+    echo "<!doctype html><html lang='pt-BR'><head>
+<meta charset='utf-8'>
+<link rel='manifest' href='/manifest.json'>
+<meta name='theme-color' content='#4a90e2'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>";
     echo "<title>" . htmlspecialchars($title) . "</title>";
     echo "<link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' rel='stylesheet'>";
     echo "</head><body class='bg-light'>";
 }
 function html_foot(): void {
-    echo "<script src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js'></script></body></html>";
+    echo "<script src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js'></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(registration => {
+        console.log('ServiceWorker registrado com sucesso: ', registration.scope);
+      }).catch(error => {
+        console.log('Falha no registro do ServiceWorker: ', error);
+      });
+    });
+  }
+</script>
+</body></html>";
 }
 ?>
