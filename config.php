@@ -15,10 +15,55 @@ define('ROOT_PATH', preg_replace('/\/(admin|filho)$/', '', $dir));
 // Caminho do banco
 const DB_PATH = ROOT_PATH . '/data/app.db';
 
+require_once 'db.php';
+
 // caminho para url
 $baseUrl = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $baseUrl = rtrim($baseUrl, '/'); // remove barra final
 $baseUrl = preg_replace('/\/(admin|filho)$/', '', $baseUrl);
+
+
+
+// Se o usuário NÃO ESTÁ LOGADO na sessão, mas TEM um cookie "lembrar de mim"
+if (!isset($_SESSION['user_id']) && isset($_COOKIE['lembrar_de_mim'])) {
+    
+    // Divide o cookie em seletor e validador
+    list($selector, $validator) = explode(':', $_COOKIE['lembrar_de_mim']);
+
+    if ($selector && $validator) {
+        // Procura o seletor no banco de dados
+        // $stmt = $pdo->prepare("SELECT * FROM auth_tokens WHERE selector = ? AND expires >= NOW()");
+        // $stmt = db()->prepare("SELECT * FROM auth_tokens WHERE selector = ? AND expires >= NOW()");
+        $stmt = db()->prepare("SELECT * FROM auth_tokens WHERE selector = ? AND expires >= datetime('now')");
+        $stmt->execute([$selector]);
+        $token_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($token_data) {
+            // Se encontrou, verifica se o validador do cookie corresponde ao do banco
+            if (password_verify($validator, $token_data['hashed_validator'])) {
+                
+                // Sucesso! O cookie é válido. Loga o usuário.
+                $_SESSION['user_id'] = $token_data['user_id'];
+
+
+                $st = db()->prepare("SELECT name, role FROM users WHERE id = ?");
+                $st->execute([$token_data['user_id']]);
+                $res = $st->fetch(PDO::FETCH_ASSOC);
+                $st->closeCursor();
+                $_SESSION['name'] = $res['name'];
+                $_SESSION['role'] = $res['role'];
+
+                // (Opcional, mas recomendado para segurança)
+                // Gerar novos tokens, atualizar o banco e o cookie do usuário.
+                // Isso invalida o token antigo e dificulta o roubo de sessão.
+
+            } else {
+                // Se a validação falhar, apague o cookie inválido
+                setcookie('lembrar_de_mim', '', time() - 3600, '/');
+            }
+        }
+    }
+}
 
 // CSRF simples
 if (empty($_SESSION['csrf_token'])) {
