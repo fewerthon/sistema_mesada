@@ -14,8 +14,8 @@ function login_user(array $user): void {
 }
 function logout_user(): void {
     // apaga o registro no banco
-    $st = db()->prepare("DELETE FROM auth_tokens WHERE user_id = ?");
-    $st->execute([$_SESSION['user_id']]);
+    $st = db()->prepare("DELETE FROM auth_tokens WHERE selector = ?");
+    $st->execute([$_SESSION['selector']]);
     $st->closeCursor();
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {

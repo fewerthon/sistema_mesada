@@ -58,6 +58,20 @@ CREATE TABLE IF NOT EXISTS config (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
 );
+-- tabela de gerenciamento de cookies
+CREATE TABLE auth_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    selector VARCHAR(255) NOT NULL,
+    hashed_validator VARCHAR(255) NOT NULL,
+    user_id INT NOT NULL,
+    expires DATETIME NOT NULL,
+    CONSTRAINT fk_user_id
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+-- Cria um índice na coluna 'selector' para buscas rápidas
+CREATE INDEX on_selector ON auth_tokens (selector);
 SQL);
 
 // ---- Ajustes condicionais (se a tabela já existia sem as colunas novas) ----

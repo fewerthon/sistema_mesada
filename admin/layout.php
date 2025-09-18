@@ -1,4 +1,5 @@
 <?php
+// layout do admin
 require_once __DIR__ . '/../config.php';
 require_once ROOT_PATH . '/util.php';
 require_role('supervisor');

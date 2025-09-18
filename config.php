@@ -22,6 +22,23 @@ $baseUrl = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 $baseUrl = rtrim($baseUrl, '/'); // remove barra final
 $baseUrl = preg_replace('/\/(admin|filho)$/', '', $baseUrl);
 
+// dia da semana em português
+$dias_semana = array(
+    'Sunday' => 'Dom',
+    'Monday' => 'Seg',
+    'Tuesday' => 'Ter',
+    'Wednesday' => 'Qua',
+    'Thursday' => 'Qui',
+    'Friday' => 'Sex',
+    'Saturday' => 'Sáb'
+);
+
+$cores = [
+    // Cores para semanas pares
+    'par' => ['#e0f2ff', '#cce6ff'], // Azul claro e azul um pouco mais escuro
+    // Cores para semanas ímpares
+    'impar' => ['#d2ffdc', '#e2ffec'] // Cinza claro e cinza um pouco mais escuro
+];
 
 
 // Se o usuário NÃO ESTÁ LOGADO na sessão, mas TEM um cookie "lembrar de mim"
@@ -44,6 +61,7 @@ if (!isset($_SESSION['user_id']) && isset($_COOKIE['lembrar_de_mim'])) {
                 
                 // Sucesso! O cookie é válido. Loga o usuário.
                 $_SESSION['user_id'] = $token_data['user_id'];
+                $_SESSION['selector'] = $selector;
 
 
                 $st = db()->prepare("SELECT name, role FROM users WHERE id = ?");

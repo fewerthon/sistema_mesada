@@ -190,9 +190,20 @@ $qbase = [
     <table class="table table-sm align-middle">
       <thead><tr><th>Data</th><th>Tarefa</th><th>Peso</th><th>Valor</th><th>Status</th><th>Ação (Supervisor)</th></tr></thead>
       <tbody>
-      <?php foreach ($page_rows as $ln): ?>
-        <tr>
-          <td><?php echo htmlspecialchars($ln['data']); ?></td>
+
+      <?php $i=0 ; foreach ($page_rows as $ln): ?>
+          <?php $diaSem = $dias_semana[date('l', strtotime($ln['data']))];
+          $numSemana = date('W', strtotime($ln['data']));
+           // Determina se a semana é par ou ímpar
+          $parImpar = ($numSemana % 2 == 0) ? 'par' : 'impar';
+          // Determina a tonalidade com base na paridade da linha (índice $i)
+          $tonalidade = $i % 2;
+          // Obtém a cor final
+          $cor_fundo = $cores[$parImpar][$tonalidade];
+          ?>
+        <style>table td {background-color: transparent !important;}</style>
+        <tr style="background-color: <?php echo $cor_fundo; ?>;">
+          <td><?php echo htmlspecialchars($ln['data']); echo " $diaSem"; ?></td>
           <td><?php echo htmlspecialchars($ln['titulo']); ?></td>
           <td><?php echo (int)$ln['peso']; ?></td>
           <td><?php echo money_br($ln['valor']); ?></td>
@@ -213,7 +224,7 @@ $qbase = [
             ?>
           </td>
         </tr>
-      <?php endforeach; ?>
+      <?php $i++; endforeach; ?>
       </tbody>
     </table>
   </div>

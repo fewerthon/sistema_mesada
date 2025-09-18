@@ -23,10 +23,12 @@ $map_val = $showValues ? map_valores_por_tarefa($user, $hoje, $tarefas) : [];
     <div class="alert alert-info">Você não tem tarefas atribuídas hoje.</div>
   <?php else: ?>
     <ul class="list-group">
-      <?php foreach ($tarefas as $t):
+      <?php $i=0 ; foreach ($tarefas as $t):
         $done = status_tarefa_no_dia((int)$user['id'], (int)$t['tarefa_id'], $hoje);
+        $tonalidade = $i % 2;
+        $cor_fundo = $cores['par'][$tonalidade];
       ?>
-      <li class="list-group-item d-flex justify-content-between align-items-center">
+      <li style="background-color: <?php echo $cor_fundo; ?>;" class="list-group-item d-flex justify-content-between align-items-center">
         <div>
           <input type="checkbox" class="form-check-input me-2" data-tarefa="<?php echo $t['tarefa_id']; ?>" <?php if($done) echo 'checked'; ?>>
           <strong><?php echo htmlspecialchars($t['titulo']); ?></strong>
@@ -36,7 +38,7 @@ $map_val = $showValues ? map_valores_por_tarefa($user, $hoje, $tarefas) : [];
           <span class="badge bg-light text-dark border">Valor: <?php echo money_br($map_val[$t['tarefa_id']] ?? 0); ?></span>
         <?php endif; ?>
       </li>
-      <?php endforeach; ?>
+      <?php $i++ ; endforeach; ?>
     </ul>
     <p class="text-muted small mt-2">Você só pode marcar/desmarcar tarefas no dia de hoje.</p>
   <?php endif; ?>
