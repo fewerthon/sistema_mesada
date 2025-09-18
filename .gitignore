@@ -1,5 +1,6 @@
 /admin/vinculos_bkp.php
 /admin/relatorio_bkp.php
 /filho/tarefas_bkp.php
-/data/app.db
+/data/*
 toggle_status_bkp.php
+error_log
