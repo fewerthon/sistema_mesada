@@ -244,10 +244,13 @@ $qbase = [
       </thead>
       <tbody>
       <?php $i=0 ; foreach ($page_rows as $ln): ?>
-      <?php $diaSem = $dias_semana[date('l', strtotime($ln['data']))];
-          $numSemana = date('W', strtotime($ln['data']));
-           // Determina se a semana é par ou ímpar
-          $parImpar = ($numSemana % 2 == 0) ? 'par' : 'impar';
+      <?php 
+          // mostra o dia da semana
+          $diaSem = $dias_semana[date('l', strtotime($ln['data']))];
+          // determina a quantidade de dias desde epoc
+          $numDia = floor(strtotime($ln['data'])/86400);
+          // Determina se a semana é par ou ímpar
+          $parImpar = ($numDia % 2 == 0) ? 'par' : 'impar';
           // Determina a tonalidade com base na paridade da linha (índice $i)
           $tonalidade = $i % 2;
           // Obtém a cor final
